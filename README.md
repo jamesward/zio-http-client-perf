@@ -3,22 +3,19 @@ ZIO HTTP Client Perf
 
 Results:
 
-`curl` - `https://google.com
- - 1 req = 412ms
- - 10 sequential = 111ms / req
-
-`java.net.http.HttpClient` - `https://google.com` (No ZIO - baseline)
- - 1 req = 1050ms
- - 10 sequential = 518ms / req
-
-`Client.default` - `http://google.com`
- - 1 req = 3052ms
- - 10 sequential = 482ms / req
-
-`Client.default` - `https://google.com`
- - 1 req = 2765ms
- - 10 sequential = 346ms / req
-
-`FixedConnectionPool size 10` - `https://google.com`
- - 1 req = 2605ms
- - 10 sequential = 350ms / req
+```
+[info] 1 https curl client = 636ms / req
+[info] 10 https curl client = 537ms / req
+[info] 1 https jdk client = 1006ms / req
+[info] 10 https jdk client = 155ms / req
+[info] 1 https netty epoll client = 359ms / req
+[info] 10 https netty epoll client = 578ms / req
+[info] 1 https netty nio client = 242ms / req
+[info] 10 https netty nio client = 533ms / req
+[info] 1 http zio = 2879ms / req
+[info] 10 http zio = 457ms / req
+[info] 1 https zio = 2738ms / req
+[info] 10 https zio = 348ms / req
+[info] 1 https zio fixed pool = 2742ms / req
+[info] 10 https zio fixed pool = 372ms / req
+```
