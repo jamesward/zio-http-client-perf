@@ -74,7 +74,7 @@ def nettyReq(url: String, eventLoopGroup: EventLoopGroup, channel: io.netty.chan
 
 
 def zioReq(url: String) = for
-  resp <- Client.request(url)
+  resp <- Client.request(Request.get(urlHttps))
   _ <- resp.body.asString
 yield
   ()
@@ -137,27 +137,27 @@ object App extends ZIOAppDefault:
     }
 
     for
-      oneHttp <- zioReq(urlHttp).provide(Client.default).timed
+      oneHttp <- zioReq(urlHttp).provide(Client.default, Scope.default).timed
       _ <- printLine(s"1 http zio = ${oneHttp._1.toMillis}ms / req")
-      tenHttp <- zioReq(urlHttp).repeatN(10).provide(Client.default).timed
+      tenHttp <- zioReq(urlHttp).repeatN(10).provide(Client.default, Scope.default).timed
       _ <- printLine(s"10 http zio = ${tenHttp._1.dividedBy(10).toMillis}ms / req")
 
-      oneHttps <- zioReq(urlHttps).provide(Client.default).timed
+      oneHttps <- zioReq(urlHttps).provide(Client.default, Scope.default).timed
       _ <- printLine(s"1 https zio = ${oneHttps._1.toMillis}ms / req")
-      tenHttps <- zioReq(urlHttps).repeatN(10).provide(Client.default).timed
+      tenHttps <- zioReq(urlHttps).repeatN(10).provide(Client.default, Scope.default).timed
       _ <- printLine(s"10 https zio = ${tenHttps._1.dividedBy(10).toMillis}ms / req")
 
       clientLayer = (
         (
           DnsResolver.default ++
           (ZLayer.succeed(NettyConfig.default) >>> NettyClientDriver.live) ++
-          ZLayer.succeed(Client.Config.default.withFixedConnectionPool(10))
+          ZLayer.succeed(Client.Config.default.fixedConnectionPool(10))
         ) >>> Client.customized
       ).fresh
 
-      onePool <- zioReq(urlHttps).provide(clientLayer).timed
+      onePool <- zioReq(urlHttps).provide(clientLayer, Scope.default).timed
       _ <- printLine(s"1 https zio fixed pool = ${onePool._1.toMillis}ms / req")
-      tenPool <- zioReq(urlHttps).repeatN(10).provide(clientLayer).timed
+      tenPool <- zioReq(urlHttps).repeatN(10).provide(clientLayer, Scope.default).timed
       _ <- printLine(s"10 https zio fixed pool = ${tenPool._1.dividedBy(10).toMillis}ms / req")
     yield
       ()
