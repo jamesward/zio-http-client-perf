@@ -103,7 +103,7 @@ object App extends ZIOAppDefault:
         jdkReq(urlHttps, client)
       }
     }
-
+/*
     timed("https netty epoll client", 1) {
       val eventLoopGroup = new EpollEventLoopGroup(16)
       val channel = EpollSocketChannel()
@@ -119,7 +119,7 @@ object App extends ZIOAppDefault:
       }
       eventLoopGroup.shutdownGracefully()
     }
-
+*/
     timed("https netty nio client", 1) {
       val eventLoopGroup = new NioEventLoopGroup(16)
       val channel = new NioSocketChannel()
