@@ -17,8 +17,8 @@ import zio.http.netty.client.NettyClientDriver
 import java.net.URI
 import java.net.http.{HttpClient, HttpRequest, HttpResponse}
 
-
-val urlHttp = "http://google.com"
+//for now, ensure not http requests are used
+//val urlHttp = "http://google.com"
 val urlHttps = "https://google.com"
 
 def timed(name: String, num: Int)(f: => Any) =
@@ -148,6 +148,8 @@ object App extends ZIOAppDefault:
       tenHttps <- zioReq(urlHttps).repeatN(10).provide(Client.default).timed
       _ <- printLine(s"10 https zio = ${tenHttps._1.dividedBy(10).toMillis}ms / req")
 
+      //todo: document how to use 3.0.0-SNAPSHOT of zio-http, then try configurations and possible code modifications
+      //      based on different clientLayers
       clientLayer = (
         (
           DnsResolver.default ++
@@ -160,5 +162,47 @@ object App extends ZIOAppDefault:
       _ <- printLine(s"1 https zio fixed pool = ${onePool._1.toMillis}ms / req")
       tenPool <- zioReq(urlHttps).repeatN(10).provide(clientLayer).timed
       _ <- printLine(s"10 https zio fixed pool = ${tenPool._1.dividedBy(10).toMillis}ms / req")
+
+      _ <- printLine("\n--------------------------------------------------")
+      _ <- printLine("TOTAL: contains client&ZIO startup/shutdown, similar to cli launch")
+      _ <- printLine("Diff : difference between 1st and 2nd request")
+
+      totalTime <- req2(urlHttps, "ZIO Client.default").provide(Client.default).timed
+      _ <- printLine(s"TOTAL = ${totalTime._1.toMillis}ms")
+
+      totalTime <- req2(urlHttps, "ZIO Client pooled").provide(Client.default).timed
+      _ <- printLine(s"TOTAL = ${totalTime._1.toMillis}ms")
+
+      totalTime <- req10(urlHttps, "ZIO Client.default").provide(Client.default).timed
+      _ <- printLine(s"TOTAL = ${totalTime._1.toMillis}ms")
+
+      totalTime <- req10(urlHttps, "ZIO Client pooled").provide(Client.default).timed
+      _ <- printLine(s"TOTAL = ${totalTime._1.toMillis}ms")
+
     yield
       ()
+
+  def req2(url: String, label: String) = for {
+
+    _ <- printLine(s"\n${url} - ${label}, 2 requests")
+
+    first <- Client.request(url).timed
+    _ <- printLine(s"1st   = ${first._1.toMillis} ms/req")
+
+    second <- Client.request(url).timed
+    _ <- printLine(s"2nd   = ${second._1.toMillis} ms/req")
+
+    diff = first._1.toMillis - second._1.toMillis
+    _ <- printLine(s"Diff  = ${diff} ms (difference 1st/2nd request)")
+
+  } yield ()
+
+
+  def req10(url: String, label: String) = for {
+
+    _ <- printLine(s"\n${url} - ${label}, 10 requests")
+
+    tenHttps <- Client.request(url).repeatN(10).timed
+    _ <- printLine(s"TENØ  = ${tenHttps._1.dividedBy(10).toMillis} ms/req (average of 10 requests")
+
+  } yield ()
