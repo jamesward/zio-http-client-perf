@@ -137,11 +137,12 @@ object App extends ZIOAppDefault:
     }
 
     for
+      /*
       oneHttp <- zioReq(urlHttp).provide(Client.default).timed
       _ <- printLine(s"1 http zio = ${oneHttp._1.toMillis}ms / req")
       tenHttp <- zioReq(urlHttp).repeatN(10).provide(Client.default).timed
       _ <- printLine(s"10 http zio = ${tenHttp._1.dividedBy(10).toMillis}ms / req")
-
+      */
       oneHttps <- zioReq(urlHttps).provide(Client.default).timed
       _ <- printLine(s"1 https zio = ${oneHttps._1.toMillis}ms / req")
       tenHttps <- zioReq(urlHttps).repeatN(10).provide(Client.default).timed
